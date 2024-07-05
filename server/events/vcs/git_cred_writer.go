@@ -2,6 +2,7 @@ package vcs
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,11 +12,9 @@ import (
 	"github.com/runatlantis/atlantis/server/logging"
 )
 
-// WriteGitCreds generates a .git-credentials file containing the username and token
-// used for authenticating with git over HTTPS
-// It will create the file in home/.git-credentials
-// If ghAccessToken is true we will look for a line starting with https://x-access-token and ending with gitHostname and replace it.
-func WriteGitCreds(gitUser string, gitToken string, gitHostname string, home string, logger logging.SimpleLogging, ghAccessToken bool) error {
+// WriteGitCreds stores the url, username, token and expiry (if supplied) to the git-credential-cache helper via the git credential protocol
+// Used for authenticating with git over HTTPS
+func WriteGitCreds(gitUser string, gitToken string, gitTokenExpiryUtc long64, gitHostname string, logger logging.SimpleLogging) error {
 	const credsFilename = ".git-credentials"
 	credsFile := filepath.Join(home, credsFilename)
 	credsFileContentsPattern := `https://%s:%s@%s` // nolint: gosec
@@ -64,7 +63,7 @@ func WriteGitCreds(gitUser string, gitToken string, gitHostname string, home str
 		}
 	}
 
-	credentialCmd := exec.Command("git", "config", "--global", "credential.helper", "store")
+	credentialCmd := exec.Command("git", "config", "--global", "credential.helper", "cache")
 	if out, err := credentialCmd.CombinedOutput(); err != nil {
 		return errors.Wrapf(err, "There was an error running %s: %s", strings.Join(credentialCmd.Args, " "), string(out))
 	}
@@ -75,6 +74,21 @@ func WriteGitCreds(gitUser string, gitToken string, gitHostname string, home str
 		return errors.Wrapf(err, "There was an error running %s: %s", strings.Join(urlCmd.Args, " "), string(out))
 	}
 	logger.Info("successfully ran %s", strings.Join(urlCmd.Args, " "))
+
+	credentialApproveCmd := exec.Command("git", "credential", "approve")
+	if stdin, err := credentialApproveCmd.StdinPipe(); err != nil {
+		return errors.Wrapf(err, "There was an error getting stdin of %s", strings.Join(credentialApproveCmd.Args, " "))
+	}
+	go writeCreds() {
+		defer stdin.Close()
+		io.WriteString(stdin, fmt.Sprintf("url=https://%s\nusername=%s\npassword=%s\npassword_utc_expiry=%d\n", gitHostname, gitUser, gitToken, gitTokenExpiryUtc))
+	}()
+
+	if out, err := credentialCmd.CombinedOutput(); err != nil {
+		return errors.Wrapf(err, "There was an error running %s: %s", strings.Join(credentialCmd.Args, " "), string(out))
+	}
+	logger.Info("successfully ran %s", strings.Join(credentialCmd.Args, " "))
+
 	return nil
 }
 
