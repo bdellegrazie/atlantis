@@ -3,6 +3,7 @@ package events_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	. "github.com/petergtz/pegomock/v4"
 	"github.com/runatlantis/atlantis/server/events"
@@ -88,7 +89,7 @@ func TestClone_GithubAppSetsCorrectUrl(t *testing.T) {
 	modifiedBaseRepo.CloneURL = "https://github.com/runatlantis/atlantis.git"
 	modifiedBaseRepo.SanitizedCloneURL = "https://github.com/runatlantis/atlantis.git"
 
-	When(credentials.GetToken()).ThenReturn("token", nil)
+	When(credentials.GetToken()).ThenReturn("token", time.Time{}, nil)
 	When(workingDir.Clone(Any[logging.SimpleLogging](), Eq(modifiedBaseRepo), Eq(models.PullRequest{BaseRepo: modifiedBaseRepo}),
 		Eq("default"))).ThenReturn("", true, nil)
 

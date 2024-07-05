@@ -44,23 +44,27 @@ func (mock *MockGithubCredentials) Client() (*http.Client, error) {
 	return ret0, ret1
 }
 
-func (mock *MockGithubCredentials) GetToken() (string, error) {
+func (mock *MockGithubCredentials) GetToken() (string, time.Time, error) {
 	if mock == nil {
 		panic("mock must not be nil. Use myMock := NewMockGithubCredentials().")
 	}
 	params := []pegomock.Param{}
-	result := pegomock.GetGenericMockFrom(mock).Invoke("GetToken", params, []reflect.Type{reflect.TypeOf((*string)(nil)).Elem(), reflect.TypeOf((*error)(nil)).Elem()})
+	result := pegomock.GetGenericMockFrom(mock).Invoke("GetToken", params, []reflect.Type{reflect.TypeOf((*string)(nil)).Elem(),reflect.TypeOf((*time.Time)(nil)).Elem(),reflect.TypeOf((*error)(nil)).Elem()})
 	var ret0 string
-	var ret1 error
+	var ret1 time.Time
+	var ret2 error
 	if len(result) != 0 {
 		if result[0] != nil {
 			ret0 = result[0].(string)
 		}
 		if result[1] != nil {
-			ret1 = result[1].(error)
+			ret1 = result[1].(time.Time)
+		}
+		if result[2] != nil {
+			ret2 = result[2].(error)
 		}
 	}
-	return ret0, ret1
+	return ret0, ret1, ret2
 }
 
 func (mock *MockGithubCredentials) GetUser() (string, error) {

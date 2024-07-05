@@ -57,15 +57,15 @@ func (r *githubAppTokenRotator) Run() {
 func (r *githubAppTokenRotator) rotate() error {
 	r.log.Debug("Refreshing git tokens for Github App")
 
-	token, err := r.githubCredentials.GetToken()
+	token, expiresAt, err := r.githubCredentials.GetToken()
 	if err != nil {
 		return errors.Wrap(err, "Getting github token")
 	}
 	r.log.Debug("token %s", token)
 
 	// https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#http-based-git-access-by-an-installation
-	if err := WriteGitCreds("x-access-token", token, r.githubHostname, r.homeDirPath, r.log, true); err != nil {
-		return errors.Wrap(err, "Writing ~/.git-credentials file")
+	if err := WriteGitCreds("x-access-token", token, expiresAt, r.githubHostname, r.log); err != nil {
+		return errors.Wrap(err, "Writing token to Git Credentials")
 	}
 	return nil
 }

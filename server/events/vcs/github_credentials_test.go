@@ -54,10 +54,10 @@ func TestGithubClient_AppAuthentication(t *testing.T) {
 	_, err = vcs.NewGithubClient(testServer, appCreds, vcs.GithubConfig{}, 0, logging.NewNoopLogger(t))
 	Ok(t, err)
 
-	token, err := appCreds.GetToken()
+	token, expiresAt, err := appCreds.GetToken()
 	Ok(t, err)
 
-	newToken, err := appCreds.GetToken()
+	newToken, newExpiresAt, err := appCreds.GetToken()
 	Ok(t, err)
 
 	user, err := appCreds.GetUser()
@@ -65,8 +65,8 @@ func TestGithubClient_AppAuthentication(t *testing.T) {
 
 	Assert(t, user == "", "user should be empty")
 
-	if token != newToken {
-		t.Errorf("app token was not cached: %q != %q", token, newToken)
+	if token != newToken || expiresAt != newExpiresAt {
+		t.Errorf("app token was not cached: %q != %q, %d != %d", token, newToken, expiresAt.Unix(), newExpiresAt.Unix())
 	}
 }
 
@@ -91,10 +91,10 @@ func TestGithubClient_MultipleAppAuthentication(t *testing.T) {
 	_, err = vcs.NewGithubClient(testServer, appCreds, vcs.GithubConfig{}, 0, logging.NewNoopLogger(t))
 	Ok(t, err)
 
-	token, err := appCreds.GetToken()
+	token, expiresAt, err := appCreds.GetToken()
 	Ok(t, err)
 
-	newToken, err := appCreds.GetToken()
+	newToken, newExpiresAt, err := appCreds.GetToken()
 	Ok(t, err)
 
 	user, err := appCreds.GetUser()
@@ -102,7 +102,7 @@ func TestGithubClient_MultipleAppAuthentication(t *testing.T) {
 
 	Assert(t, user == "", "user should be empty")
 
-	if token != newToken {
-		t.Errorf("app token was not cached: %q != %q", token, newToken)
+	if token != newToken || expiresAt != newExpiresAt {
+		t.Errorf("app token was not cached: %q != %q, %d != %d", token, newToken, expiresAt.Unix(), newExpiresAt.Unix())
 	}
 }

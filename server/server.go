@@ -325,12 +325,12 @@ func NewServer(userConfig UserConfig, config Config) (*Server, error) {
 
 	if userConfig.WriteGitCreds {
 		if userConfig.GithubUser != "" {
-			if err := vcs.WriteGitCreds(userConfig.GithubUser, userConfig.GithubToken, userConfig.GithubHostname, home, logger, false); err != nil {
+			if err := vcs.WriteGitCreds(userConfig.GithubUser, userConfig.GithubToken, time.Time{}, userConfig.GithubHostname, logger); err != nil {
 				return nil, err
 			}
 		}
 		if userConfig.GitlabUser != "" {
-			if err := vcs.WriteGitCreds(userConfig.GitlabUser, userConfig.GitlabToken, userConfig.GitlabHostname, home, logger, false); err != nil {
+			if err := vcs.WriteGitCreds(userConfig.GitlabUser, userConfig.GitlabToken, time.Time{}, userConfig.GitlabHostname, logger); err != nil {
 				return nil, err
 			}
 		}
@@ -341,17 +341,17 @@ func NewServer(userConfig UserConfig, config Config) (*Server, error) {
 			if bitbucketBaseURL == "https://api.bitbucket.org" {
 				bitbucketBaseURL = "bitbucket.org"
 			}
-			if err := vcs.WriteGitCreds(userConfig.BitbucketUser, userConfig.BitbucketToken, bitbucketBaseURL, home, logger, false); err != nil {
+			if err := vcs.WriteGitCreds(userConfig.BitbucketUser, userConfig.BitbucketToken, time.Time{}, bitbucketBaseURL, logger); err != nil {
 				return nil, err
 			}
 		}
 		if userConfig.AzureDevopsUser != "" {
-			if err := vcs.WriteGitCreds(userConfig.AzureDevopsUser, userConfig.AzureDevopsToken, "dev.azure.com", home, logger, false); err != nil {
+			if err := vcs.WriteGitCreds(userConfig.AzureDevopsUser, userConfig.AzureDevopsToken, time.Time{}, "dev.azure.com", logger); err != nil {
 				return nil, err
 			}
 		}
 		if userConfig.GiteaUser != "" {
-			if err := vcs.WriteGitCreds(userConfig.GiteaUser, userConfig.GiteaToken, userConfig.GiteaBaseURL, home, logger, false); err != nil {
+			if err := vcs.WriteGitCreds(userConfig.GiteaUser, userConfig.GiteaToken, time.Time{}, userConfig.GiteaBaseURL, logger); err != nil {
 				return nil, err
 			}
 		}

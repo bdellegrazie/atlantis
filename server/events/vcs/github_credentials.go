@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v59/github"
@@ -17,7 +18,7 @@ import (
 // GithubCredentials handles creating http.Clients that authenticate.
 type GithubCredentials interface {
 	Client() (*http.Client, error)
-	GetToken() (string, error)
+	GetToken() (string, time.Time, error)
 	GetUser() (string, error)
 }
 
@@ -36,8 +37,8 @@ func (c *GithubAnonymousCredentials) GetUser() (string, error) {
 }
 
 // GetToken returns an empty token.
-func (c *GithubAnonymousCredentials) GetToken() (string, error) {
-	return "", nil
+func (c *GithubAnonymousCredentials) GetToken() (string, time.Time, error) {
+	return "", time.Time{}, nil
 }
 
 // GithubUserCredentials implements GithubCredentials for the personal auth token flow.
@@ -61,8 +62,8 @@ func (c *GithubUserCredentials) GetUser() (string, error) {
 }
 
 // GetToken returns the user token.
-func (c *GithubUserCredentials) GetToken() (string, error) {
-	return c.Token, nil
+func (c *GithubUserCredentials) GetToken() (string, time.Time, error) {
+	return c.Token, time.Time{}, nil
 }
 
 // GithubAppCredentials implements GithubCredentials for github app installation token flow.
@@ -112,13 +113,21 @@ func (c *GithubAppCredentials) GetUser() (string, error) {
 }
 
 // GetToken returns a fresh installation token.
-func (c *GithubAppCredentials) GetToken() (string, error) {
+func (c *GithubAppCredentials) GetToken() (string, time.Time, error) {
 	tr, err := c.transport()
 	if err != nil {
-		return "", errors.Wrap(err, "transport failed")
+		return "", time.Time{}, errors.Wrap(err, "transport failed")
 	}
 
-	return tr.Token(context.Background())
+	token, err := tr.Token(context.Background())
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	expiresAt, _, err := tr.Expiry()
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return token, expiresAt, nil
 }
 
 func (c *GithubAppCredentials) getInstallationID() (int64, error) {

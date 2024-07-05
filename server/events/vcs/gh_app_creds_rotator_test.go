@@ -1,9 +1,6 @@
 package vcs_test
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -34,16 +31,6 @@ func Test_githubAppTokenRotator_GenerateJob(t *testing.T) {
 		wantErr          bool
 	}{
 		{
-			name: "Should write .git-credentials file on start",
-			fields: fields{&vcs.GithubAppCredentials{
-				AppID:    tempSecrets.ID,
-				Key:      []byte(testdata.GithubPrivateKey),
-				Hostname: testServer,
-			}},
-			credsFileWritten: true,
-			wantErr:          false,
-		},
-		{
 			name: "Should return an error if pem data is missing or wrong",
 			fields: fields{&vcs.GithubAppCredentials{
 				AppID:    tempSecrets.ID,
@@ -73,12 +60,6 @@ func Test_githubAppTokenRotator_GenerateJob(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("githubAppTokenRotator.GenerateJob() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if tt.credsFileWritten {
-				credsFileContent := fmt.Sprintf(`https://x-access-token:some-token@%s`, testServer)
-				actContents, err := os.ReadFile(filepath.Join(tmpDir, ".git-credentials"))
-				Ok(t, err)
-				Equals(t, credsFileContent, string(actContents))
 			}
 			Equals(t, 30*time.Second, got.Period)
 		})
